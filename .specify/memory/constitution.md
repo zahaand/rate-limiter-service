@@ -136,4 +136,4 @@ All PRs and code reviews MUST verify compliance with the Core Principles above.
 The `CLAUDE.md` runtime guidance file MUST remain consistent with this constitution;
 discrepancies are resolved in favor of this document.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-05 | **Last Amended**: 2026-05-05
+**Version**: 1.1.0 | **Ratified**: 2026-05-05 | **Last Amended**: 2026-05-05
