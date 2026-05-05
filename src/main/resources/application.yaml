@@ -8,3 +8,4 @@ redis:
 rateLimit:
   defaultLimit: 100
   defaultWindowSeconds: 60
+  defaultStrategy: FIXED_WINDOW
