@@ -69,7 +69,7 @@ data class RateLimitDecision(
 
 **`remaining` invariants**:
 - Always `>= 0`.
-- Token Bucket: floor of fractional internal token count (`tokens.toInt()`).
+- Token Bucket: floor of token count AFTER deducting one for the current request (`(tokens - 1.0).toInt()`).
 - When `allowed = false`: always `0`.
 
 ---
@@ -115,10 +115,10 @@ object SlidingWindowAlgorithm {
 ```
 
 **Logic**:
-- `cutoff = now - windowSeconds`. Prune all `timestamps` where `t <= cutoff`.
-- `resetAt`: oldest valid timestamp + windowSeconds (if any); else `now + windowSeconds`.
+- `cutoff = now - windowSeconds`. Prune all `timestamps` where `t < cutoff` (strict — entry at exactly `cutoff` remains in window; semantics: "last N seconds inclusive").
 - If `valid.size < limit`: append `now`, return `allowed=true, remaining=limit-newSize`.
 - Else: return `allowed=false, remaining=0` (do not append `now`).
+- `resetAt = now` when `remaining > 0` or the final timestamp list is empty; otherwise `oldest_valid_timestamp + windowSeconds`.
 - Equal timestamps count as distinct entries.
 
 ---

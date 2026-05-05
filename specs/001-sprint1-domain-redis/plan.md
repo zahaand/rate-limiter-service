@@ -136,12 +136,14 @@ remaining    = max(0, policy.limit - newCount)
 **File**: `domain/algorithm/SlidingWindowAlgorithm.kt`
 
 ```
-cutoff       = now - windowSeconds
-valid        = timestamps.filter { it > cutoff }
-resetAt      = valid.firstOrNull()?.plusSeconds(windowSeconds) ?: now.plusSeconds(windowSeconds)
-allowed      = valid.size < policy.limit
+cutoff        = now - windowSeconds
+valid         = timestamps.filter { it >= cutoff }            // inclusive boundary
+allowed       = valid.size < policy.limit
 newTimestamps = if allowed: valid + now else valid
-remaining    = max(0, policy.limit - newTimestamps.size)
+remaining     = max(0, policy.limit - newTimestamps.size)
+resetAt       = if (remaining == 0 && newTimestamps.isNotEmpty())
+                    newTimestamps.first().plusSeconds(windowSeconds)
+                else now
 ```
 
 **Test class**: `SlidingWindowAlgorithmTest`
@@ -186,7 +188,7 @@ Zero-guard: `if (refillRate == 0.0) resetAt = now + windowSeconds`
 **Test class**: `TokenBucketAlgorithmTest`
 - Full bucket → first N requests allowed
 - Empty bucket → rejected immediately
-- After 30 s with 10/60 s rate → 5 tokens available (US2 Scenario 3)
+- After 30 s with 10/60 s rate → allowed, `remaining = 4` (5 refilled, 1 consumed — US2 Scenario 3)
 - `Double` precision: test that fractional refill accumulates correctly over multiple calls
 - `limit=0` → always rejected, no division-by-zero
 

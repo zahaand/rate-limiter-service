@@ -52,7 +52,8 @@ Bucket refills proportionally. Each algorithm testable in isolation with no shar
    **Then** only requests made within the last 60 seconds count toward the limit — no hard
    boundary reset occurs
 3. **Given** a Token Bucket strategy (capacity 10, refill 10 per 60 s), **When** the bucket
-   is empty and 30 seconds pass, **Then** 5 new tokens are available for consumption
+   is empty and 30 seconds pass and a request arrives, **Then** the request is allowed and
+   `remaining = 4` (5 tokens refilled at 10/60 tokens/s × 30 s; 1 consumed for this request)
 
 ---
 
@@ -106,12 +107,18 @@ default limit is applied. All testable in-memory.
   aligned to multiples of the window size (e.g., every 60 s at :00), not rolling from the
   first request.
 - **FR-005**: Sliding Window strategy MUST count only requests made within the last N seconds
-  from the current moment. There is no hard boundary reset.
+  from the current moment. There is no hard boundary reset. A request timestamp `t` is
+  within the window if `t >= now - windowSeconds` (inclusive boundary); timestamps strictly
+  older than `now - windowSeconds` MUST be pruned before evaluating the count. The `resetAt`
+  field MUST be `now` when the window has remaining capacity after this request; otherwise
+  it MUST be `oldest_valid_timestamp + windowSeconds` — the moment the oldest entry expires
+  and a new slot opens. When the window is empty `resetAt` MUST be `now`.
 - **FR-006**: Token Bucket strategy MUST refill tokens continuously at the rate of
   `capacity / windowSeconds` tokens per second. The internal token count MUST be tracked as
   a `Double` to avoid accumulated rounding drift. Tokens MUST NOT exceed capacity. The
-  `remaining` field in `RateLimitDecision` MUST be the floor of the current token count
-  (`toInt()`). The bucket MUST start full on first use.
+  `remaining` field MUST be the floor of the token count AFTER deducting one token for the
+  current request when allowed (`(tokens - 1.0).toInt()`), and `0` when rejected. The
+  bucket MUST start full on first use.
 - **FR-007**: The system MUST store rate limit policies per client key and support save,
   retrieve, and delete operations on those policies.
 - **FR-008**: When no policy is stored for a client key, the system MUST apply a
