@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/001-sprint1-domain-redis/plan.md
+at specs/002-sprint2-service-api/plan.md
 <!-- SPECKIT END -->
