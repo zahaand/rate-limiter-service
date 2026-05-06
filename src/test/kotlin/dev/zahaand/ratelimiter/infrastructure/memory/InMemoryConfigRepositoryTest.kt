@@ -39,15 +39,15 @@ class InMemoryConfigRepositoryTest {
     inner class Delete {
 
         @Test
-        fun `should return null after delete`() = runTest {
+        fun `should return true and remove policy when key exists`() = runTest {
             repo.save("key3", policy)
-            repo.delete("key3")
+            assertThat(repo.delete("key3")).isTrue()
             assertThat(repo.get("key3")).isNull()
         }
 
         @Test
-        fun `should not throw when deleting absent key`() = runTest {
-            repo.delete("nonexistent")
+        fun `should return false when deleting absent key`() = runTest {
+            assertThat(repo.delete("nonexistent")).isFalse()
         }
     }
 }

@@ -13,7 +13,5 @@ class InMemoryConfigRepository : ConfigRepository {
 
     override suspend fun get(key: String): RateLimitPolicy? = policies[key]
 
-    override suspend fun delete(key: String) {
-        policies.remove(key)
-    }
+    override suspend fun delete(key: String): Boolean = policies.remove(key) != null
 }

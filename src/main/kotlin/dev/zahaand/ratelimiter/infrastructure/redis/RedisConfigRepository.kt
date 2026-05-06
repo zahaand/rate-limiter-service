@@ -37,7 +37,5 @@ class RedisConfigRepository(
         )
     }
 
-    override suspend fun delete(key: String) {
-        commands.del("config:$key")
-    }
+    override suspend fun delete(key: String): Boolean = (commands.del("config:$key") ?: 0L) > 0L
 }
