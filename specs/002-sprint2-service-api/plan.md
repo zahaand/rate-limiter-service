@@ -168,7 +168,7 @@ loadConfig (Hoplite) or use overrideConfig parameter
       }
       healthRoute(commands)
     }
-  → environment.monitor.subscribe(ApplicationStopped) {
+  → monitor.subscribe(ApplicationStopped) {
       connection.close()
       redisClient.shutdown()
     }

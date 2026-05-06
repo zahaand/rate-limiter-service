@@ -99,7 +99,7 @@ trigger alerts without parsing the body.
 functional development. It depends on Redis connectivity being established (P1, P2).
 
 **Independent Test**: With Redis running, GET `/health` and confirm HTTP 200 with both fields
-`UP`. Stop the Redis container. GET `/health` again and confirm HTTP 503 with `redis: "DOWN"`
+`UP`. Pause the Redis container. GET `/health` again and confirm HTTP 503 with `redis: "DOWN"`
 and `status: "DOWN"`.
 
 **Acceptance Scenarios**:
