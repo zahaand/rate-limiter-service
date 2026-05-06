@@ -38,7 +38,7 @@ No user story work begins until this phase is complete.
 - [X] T005 Update `InMemoryConfigRepositoryTest` delete assertions to assert Boolean return: `true` when key existed and was removed, `false` when key was never stored, in `src/test/kotlin/dev/zahaand/ratelimiter/infrastructure/memory/InMemoryConfigRepositoryTest.kt`
 - [X] T006 [P] Create `ErrorResponse(@Serializable data class, val error: String)` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/dto/ErrorResponse.kt`
 - [X] T007 [P] Create `InstantSerializer` (`object : KSerializer<Instant>`) — `serialize` calls `encoder.encodeString(value.toString())`, `deserialize` calls `Instant.parse(decoder.decodeString())` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/dto/InstantSerializer.kt`
-- [X] T008 Add `overrideConfig: AppConfig? = null` parameter to `Application.module()`, add `install(ContentNegotiation) { json() }` and `install(StatusPages) { exception<Throwable> { call, _ -> call.respond(InternalServerError, ErrorResponse("internal server error")) } }` in `src/main/kotlin/dev/zahaand/ratelimiter/Application.kt`
+- [X] T008 Add `overrideConfig: AppConfig? = null` parameter to `Application.module()`, configure Netty engine with `shutdownGracePeriod = 5_000L` / `shutdownTimeout = 5_000L` (FR-013), add `install(ContentNegotiation) { json() }`, add `install(StatusPages)` with four handlers in most-specific-first order: `UnsupportedMediaTypeException` → 415 `{"error":"unsupported media type"}`, `BadRequestException` → 400 `{"error":"invalid request body"}`, `JsonConvertException` → 400 `{"error":"invalid request body"}`, `Throwable` → 500 `{"error":"internal server error"}` — covers FR-012, FR-014, FR-015 in `src/main/kotlin/dev/zahaand/ratelimiter/Application.kt`
 
 **Checkpoint**: Foundation ready — interface compiles, shared DTOs exist, module accepts test config.
 
@@ -100,7 +100,7 @@ HTTP 503 DOWN/DOWN. Response within 2 seconds in both cases.
 - [ ] T021 Write `HealthRouteIT` with 2 failing integration test cases: (1) `GET /health` returns 200 `{"status":"UP","redis":"UP"}` when Redis available, (2) `GET /health` returns 503 `{"status":"DOWN","redis":"DOWN"}` when Redis container paused via `RedisTestContainer.container.pause()` / `.unpause()` in `src/test/kotlin/dev/zahaand/ratelimiter/integration/HealthRouteIT.kt`
 - [ ] T022 Create `HealthResponse` — `@Serializable data class HealthResponse(val status: String, val redis: String)` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/dto/HealthResponse.kt`
 - [ ] T023 Implement `fun Route.healthRoute(commands: RedisCoroutinesCommands<String, String>)` — `get("/health") { }`: call `withTimeout(1_000L) { commands.ping() }`, catch `TimeoutCancellationException` before `Exception` (both → `"DOWN"`), respond with `HealthResponse` and `HttpStatusCode.OK` or `HttpStatusCode.ServiceUnavailable` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/HealthRoute.kt`
-- [ ] T024 Add `healthRoute(commands)` to the bare (non-`/v1`) routing block and add `environment.monitor.subscribe(ApplicationStopped) { connection.close(); redisClient.shutdown() }` graceful shutdown hook in `src/main/kotlin/dev/zahaand/ratelimiter/Application.kt`
+- [ ] T024 Add `healthRoute(commands)` to the bare (non-`/v1`) routing block and add `environment.monitor.subscribe(ApplicationStopped) { connection.close(); redisClient.shutdown() }` graceful shutdown hook; Netty engine shutdown grace period is already configured in T008 (`shutdownGracePeriod = 5_000L`, `shutdownTimeout = 5_000L`) and satisfies the FR-013 5-second in-flight wait in `src/main/kotlin/dev/zahaand/ratelimiter/Application.kt`
 
 **Checkpoint**: All three user stories fully functional. All integration tests green. Service shuts down cleanly.
 
@@ -111,6 +111,7 @@ HTTP 503 DOWN/DOWN. Response within 2 seconds in both cases.
 **Purpose**: Verify correctness end-to-end and confirm the full system behaves as specified.
 
 - [ ] T025 [P] Run full test suite `./gradlew test` — confirm all unit tests (domain, infrastructure/memory) and all integration tests (CheckRouteIT, LimitsRouteIT, HealthRouteIT) pass with zero failures
+- [ ] T025b Write `ConcurrentCheckIT` — configure `limit=10`/`windowSeconds=60` for key `"concurrent-test"`, launch 50 coroutines simultaneously via `(1..50).map { async { client.post("/v1/check") { … } } }.awaitAll()`, assert exactly 10 responses have `allowed=true`, exactly 40 have `allowed=false`, all 50 have HTTP 200; use `@BeforeEach` FLUSHDB for isolation — implements SC-002 in `src/test/kotlin/dev/zahaand/ratelimiter/integration/ConcurrentCheckIT.kt`
 - [ ] T026 [P] Run smoke tests from `specs/002-sprint2-service-api/quickstart.md` against a local Redis instance on `localhost:6379` — exercise all five endpoints manually and confirm responses match contract in `specs/002-sprint2-service-api/contracts/http-api.md`
 
 ---

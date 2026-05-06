@@ -159,7 +159,8 @@ loadConfig (Hoplite) or use overrideConfig parameter
   → RedisConfigRepository(commands)
   → RateLimiterService(rateLimitRepo, configRepo, appConfig)
   → install(ContentNegotiation) { json() }
-  → install(StatusPages) { exception<Throwable> → 500 ErrorResponse }
+  → install(StatusPages) { UnsupportedMediaTypeException→415, BadRequestException→400,
+      JsonConvertException→400, Throwable→500 (all ErrorResponse) }
   → routing {
       route("/v1") {
         checkRoute(rateLimiterService)
@@ -169,7 +170,7 @@ loadConfig (Hoplite) or use overrideConfig parameter
     }
   → environment.monitor.subscribe(ApplicationStopped) {
       connection.close()
-      client.shutdown()
+      redisClient.shutdown()
     }
 ```
 
@@ -199,7 +200,7 @@ object RedisTestContainer {
             .also { it.start() }
 
     val host: String get() = container.host
-    val port: Int get() = container.firstMappedPort
+    val port: Int get() = container.getMappedPort(6379)
 }
 ```
 

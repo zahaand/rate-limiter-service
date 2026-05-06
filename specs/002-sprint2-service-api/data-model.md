@@ -171,7 +171,7 @@ Direction: outbound (all error responses)
 |-------|------|
 | `error` | `String` |
 
-Used for HTTP 400, 404, 500.
+Used for HTTP 400, 404, 415, 500.
 
 ---
 
