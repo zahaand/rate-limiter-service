@@ -6,6 +6,7 @@ import dev.zahaand.ratelimiter.infrastructure.config.AppConfig
 import dev.zahaand.ratelimiter.infrastructure.redis.RedisConfigRepository
 import dev.zahaand.ratelimiter.infrastructure.redis.RedisRateLimitRepository
 import dev.zahaand.ratelimiter.routes.checkRoute
+import dev.zahaand.ratelimiter.routes.healthRoute
 import dev.zahaand.ratelimiter.routes.limitsRoute
 import dev.zahaand.ratelimiter.routes.dto.ErrorResponse
 import dev.zahaand.ratelimiter.service.RateLimiterService
@@ -78,6 +79,7 @@ fun Application.module(overrideConfig: AppConfig? = null) {
             checkRoute(rateLimiterService)
             limitsRoute(configRepository)
         }
+        healthRoute(commands)
     }
 
     monitor.subscribe(ApplicationStopped) {
