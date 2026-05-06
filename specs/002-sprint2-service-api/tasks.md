@@ -21,7 +21,7 @@ testing, and delivery of each story.
 **Purpose**: Create the Testcontainers singleton used by all integration test classes.
 Must exist before any integration test file can be written.
 
-- [ ] T001 Create `RedisTestContainer` Kotlin `object` — starts `redis:7-alpine` via `GenericContainer`, exposes `host` and `port` properties; started eagerly with `.also { it.start() }` in `src/test/kotlin/dev/zahaand/ratelimiter/integration/RedisTestContainer.kt`
+- [X] T001 Create `RedisTestContainer` Kotlin `object` — starts `redis:7-alpine` via `GenericContainer`, exposes `host` and `port` properties; started eagerly with `.also { it.start() }` in `src/test/kotlin/dev/zahaand/ratelimiter/integration/RedisTestContainer.kt`
 
 ---
 
@@ -32,13 +32,13 @@ No user story work begins until this phase is complete.
 
 **⚠️ CRITICAL**: T002–T005 must be completed sequentially in order. T006–T008 can follow once T002 is done.
 
-- [ ] T002 Change `ConfigRepository.delete` return type from `Unit` to `Boolean` (`true` = key deleted, `false` = key not found) in `src/main/kotlin/dev/zahaand/ratelimiter/domain/port/ConfigRepository.kt`
-- [ ] T003 [P] Update `InMemoryConfigRepository.delete` to `return policies.remove(key) != null` in `src/main/kotlin/dev/zahaand/ratelimiter/infrastructure/memory/InMemoryConfigRepository.kt`
-- [ ] T004 [P] Update `RedisConfigRepository.delete` to `return (commands.del("config:$key") ?: 0L) > 0L` in `src/main/kotlin/dev/zahaand/ratelimiter/infrastructure/redis/RedisConfigRepository.kt`
-- [ ] T005 Update `InMemoryConfigRepositoryTest` delete assertions to assert Boolean return: `true` when key existed and was removed, `false` when key was never stored, in `src/test/kotlin/dev/zahaand/ratelimiter/infrastructure/memory/InMemoryConfigRepositoryTest.kt`
-- [ ] T006 [P] Create `ErrorResponse(@Serializable data class, val error: String)` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/dto/ErrorResponse.kt`
-- [ ] T007 [P] Create `InstantSerializer` (`object : KSerializer<Instant>`) — `serialize` calls `encoder.encodeString(value.toString())`, `deserialize` calls `Instant.parse(decoder.decodeString())` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/dto/InstantSerializer.kt`
-- [ ] T008 Add `overrideConfig: AppConfig? = null` parameter to `Application.module()`, add `install(ContentNegotiation) { json() }` and `install(StatusPages) { exception<Throwable> { call, _ -> call.respond(InternalServerError, ErrorResponse("internal server error")) } }` in `src/main/kotlin/dev/zahaand/ratelimiter/Application.kt`
+- [X] T002 Change `ConfigRepository.delete` return type from `Unit` to `Boolean` (`true` = key deleted, `false` = key not found) in `src/main/kotlin/dev/zahaand/ratelimiter/domain/port/ConfigRepository.kt`
+- [X] T003 [P] Update `InMemoryConfigRepository.delete` to `return policies.remove(key) != null` in `src/main/kotlin/dev/zahaand/ratelimiter/infrastructure/memory/InMemoryConfigRepository.kt`
+- [X] T004 [P] Update `RedisConfigRepository.delete` to `return (commands.del("config:$key") ?: 0L) > 0L` in `src/main/kotlin/dev/zahaand/ratelimiter/infrastructure/redis/RedisConfigRepository.kt`
+- [X] T005 Update `InMemoryConfigRepositoryTest` delete assertions to assert Boolean return: `true` when key existed and was removed, `false` when key was never stored, in `src/test/kotlin/dev/zahaand/ratelimiter/infrastructure/memory/InMemoryConfigRepositoryTest.kt`
+- [X] T006 [P] Create `ErrorResponse(@Serializable data class, val error: String)` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/dto/ErrorResponse.kt`
+- [X] T007 [P] Create `InstantSerializer` (`object : KSerializer<Instant>`) — `serialize` calls `encoder.encodeString(value.toString())`, `deserialize` calls `Instant.parse(decoder.decodeString())` in `src/main/kotlin/dev/zahaand/ratelimiter/routes/dto/InstantSerializer.kt`
+- [X] T008 Add `overrideConfig: AppConfig? = null` parameter to `Application.module()`, add `install(ContentNegotiation) { json() }` and `install(StatusPages) { exception<Throwable> { call, _ -> call.respond(InternalServerError, ErrorResponse("internal server error")) } }` in `src/main/kotlin/dev/zahaand/ratelimiter/Application.kt`
 
 **Checkpoint**: Foundation ready — interface compiles, shared DTOs exist, module accepts test config.
 
