@@ -1,24 +1,25 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.0.0 → 1.1.0
-Bump type: MINOR — material change to a technology mandate in Technology Stack section.
+Version change: 1.1.0 → 1.2.0
+Bump type: MINOR — removed duplicated git commit rules from Development Workflow section.
 
 Modified sections:
-  - Technology Stack & Architecture Constraints:
-      config mandate replaced — Ktor HOCON → Hoplite + YAML
+  - Development Workflow & Git Conventions:
+      removed "Commit format", "Commit subject line", "Commit body" bullets.
 
 Added sections: N/A
 Removed sections: N/A
 
-Rationale for change: Hoplite binds configuration directly to Kotlin data classes with val
-fields, which aligns with Principle II (Immutability & Safety) better than HOCON string-map
-lookups. Type safety is enforced at startup rather than at call-site.
+Rationale for change: Commit message language, subject line format, and Conventional Commits
+type list are fully specified in .claude/skills/git/git-conventional-commit/SKILL.md.
+Duplicating those rules here created a divergence risk; the skill is the single source of
+truth for commit conventions.
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md  — no config-specific refs.
-  ✅ .specify/templates/spec-template.md  — no config-specific refs.
-  ✅ .specify/templates/tasks-template.md — no config-specific refs.
+  ✅ .specify/templates/plan-template.md  — no commit-convention refs.
+  ✅ .specify/templates/spec-template.md  — no commit-convention refs.
+  ✅ .specify/templates/tasks-template.md — no commit-convention refs.
 
 Follow-up TODOs: None.
 -->
@@ -111,9 +112,6 @@ a deployment cycle. Restart-based reconfiguration is unacceptable in production 
 
 ## Development Workflow & Git Conventions
 
-- **Commit format**: Conventional Commits — `feat`, `fix`, `chore`, `test`, `refactor`
-- **Commit subject line**: English
-- **Commit body**: Russian
 - **Branch policy**: No WIP commits to `main`. All changes land via PR after review.
 - **Code review gate**: Every PR MUST verify compliance with all six Core Principles.
 - Deliberate departures from any principle MUST be justified in the PR description with a
@@ -136,4 +134,4 @@ All PRs and code reviews MUST verify compliance with the Core Principles above.
 The `CLAUDE.md` runtime guidance file MUST remain consistent with this constitution;
 discrepancies are resolved in favor of this document.
 
-**Version**: 1.1.0 | **Ratified**: 2026-05-05 | **Last Amended**: 2026-05-05
+**Version**: 1.2.0 | **Ratified**: 2026-05-05 | **Last Amended**: 2026-05-06
