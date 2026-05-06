@@ -115,9 +115,11 @@ and `status: "DOWN"`.
 
 ### Edge Cases
 
-- `POST /v1/check` with a blank key — where "blank" means any of: empty string (`""`),
-  whitespace-only (`"   "`), or missing `key` field in the JSON body — MUST be rejected with
-  HTTP 400 and body `{"error": "key must not be blank"}`.
+- `POST /v1/check` with a blank key — where "blank" means empty string (`""`) or
+  whitespace-only (`"   "`) — MUST be rejected with HTTP 400 and
+  `{"error": "key must not be blank"}`. A missing `key` field in the JSON body is a
+  deserialization failure and returns HTTP 400 with `{"error": "invalid request body"}`
+  (FR-015), not "key must not be blank".
 - `POST /v1/limits` with `limit = 0` is valid — all requests for that key will be rejected
   (`allowed: false, remaining: 0`). This is a legitimate configuration, not a validation error.
 - `POST /v1/limits` with `windowSeconds = 0` must be rejected with HTTP 400.
@@ -150,9 +152,11 @@ and `status: "DOWN"`.
   This applies only to valid check requests — it does not override validation errors (FR-003)
   or other failure responses. HTTP 429 is explicitly out of scope.
 - **FR-003**: The `POST /v1/check` endpoint MUST reject requests where `key` is blank. "Blank"
-  covers all three cases: empty string (`""`), whitespace-only string (e.g. `"   "`), and a
-  missing `key` field in the JSON body. All three MUST return HTTP 400 with
-  `{"error": "key must not be blank"}`.
+  means the field is present but contains only whitespace or is an empty string. Both cases
+  MUST return HTTP 400 with `{"error": "key must not be blank"}`. A missing `key` field is
+  treated as a deserialization failure (see FR-015) and returns `{"error": "invalid request body"}`,
+  not the blank-key message. `CheckRequest` keeps `key: String` (non-nullable); a missing
+  field causes `BadRequestException` → FR-015 handler.
 - **FR-004**: When no per-key policy is stored, the check MUST fall back to the service-wide
   default policy defined at startup. No error may surface to callers in this scenario.
 - **FR-005**: Every REJECTED decision MUST be logged at **WARN** level as a structured JSON
@@ -255,7 +259,9 @@ and `status: "DOWN"`.
   connection-related exception is thrown during test teardown.
 - **SC-008**: Every REJECTED rate-limit decision produces a WARN-level structured log entry
   containing all five required fields: `key`, `strategy`, `limit`, `windowSeconds`,
-  `timestamp`. Verifiable via log output inspection in integration tests or manual review.
+  `timestamp`. For Sprint 2 MVP, verification is by manual log output inspection.
+  Programmatic assertion via a test log appender (e.g. Logback `ListAppender`) is deferred
+  post-MVP and is not a Sprint 2 gate.
 
 ## Assumptions
 
