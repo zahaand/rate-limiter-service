@@ -236,7 +236,12 @@ Each IT class:
 - `GET returns 404 when not found`
 - `DELETE returns 204 and policy is gone`
 - `DELETE returns 404 when not found`
+- `POST returns 400 for key exceeding 512 characters`
+- `POST limit=0 valid → 201; subsequent check → allowed=false remaining=0`
 
 ### `HealthRouteIT`
 - `returns 200 UP when Redis available`
-- `returns 503 DOWN when Redis unavailable` (container paused via Testcontainers `pause()`)
+- `returns 503 DOWN when Redis unavailable` (container paused via `DockerClientFactory.instance().client().pauseContainerCmd(container.containerId).exec()` / `unpauseContainerCmd(...).exec()`)
+
+### `ConcurrentCheckIT`
+- `50 concurrent POST /v1/check for key with limit=10 → exactly 10 allowed=true, 40 allowed=false`
