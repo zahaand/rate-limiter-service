@@ -33,7 +33,8 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
 
-    // Swagger UI
+    // Swagger UI (ktor-openapi: spec generation + documentation{} DSL; ktor-swagger-ui: static UI files)
+    implementation("io.github.smiley4:ktor-openapi:$swaggerUiVersion")
     implementation("io.github.smiley4:ktor-swagger-ui:$swaggerUiVersion")
 
     // Redis
