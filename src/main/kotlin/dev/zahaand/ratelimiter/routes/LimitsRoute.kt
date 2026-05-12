@@ -32,14 +32,20 @@ fun Route.limitsRoute(configRepository: ConfigRepository) {
                 example("sliding-window-policy") {
                     value = LimitConfigRequest("payment-api", 50, 30, "SLIDING_WINDOW")
                 }
+                example("token-bucket-policy") {
+                    value = LimitConfigRequest("auth-service", 20, 10, "TOKEN_BUCKET")
+                }
             }
         }
         response {
             HttpStatusCode.Created to {
                 description = "Policy stored. Body echoes the stored values exactly."
                 body<LimitConfigResponse> {
-                    example("tenant-a-policy") {
+                    example("fixed-window-policy") {
                         value = LimitConfigResponse("tenant-A", 100, 60, "FIXED_WINDOW")
+                    }
+                    example("token-bucket-policy") {
+                        value = LimitConfigResponse("auth-service", 20, 10, "TOKEN_BUCKET")
                     }
                 }
             }
@@ -120,8 +126,11 @@ fun Route.limitsRoute(configRepository: ConfigRepository) {
             HttpStatusCode.OK to {
                 description = "Policy found."
                 body<LimitConfigResponse> {
-                    example("tenant-a-policy") {
+                    example("fixed-window-policy") {
                         value = LimitConfigResponse("tenant-A", 100, 60, "FIXED_WINDOW")
+                    }
+                    example("token-bucket-policy") {
+                        value = LimitConfigResponse("auth-service", 20, 10, "TOKEN_BUCKET")
                     }
                 }
             }
