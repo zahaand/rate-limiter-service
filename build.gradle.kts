@@ -22,6 +22,7 @@ val logbackVersion = "1.5.18"
 val hopliteVersion = "2.9.0"
 val mockkVersion = "1.14.2"
 val testcontainersVersion = "1.21.0"
+val swaggerUiVersion = "5.7.0"
 
 dependencies {
     // Ktor server
@@ -31,6 +32,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
+
+    // Swagger UI (ktor-openapi: spec generation + documentation{} DSL; ktor-swagger-ui: static UI files)
+    implementation("io.github.smiley4:ktor-openapi:$swaggerUiVersion")
+    implementation("io.github.smiley4:ktor-swagger-ui:$swaggerUiVersion")
 
     // Redis
     implementation("io.lettuce:lettuce-core:$lettuceVersion")

@@ -11,6 +11,8 @@ testing, and delivery of each story.
 
 ## Format: `[ID] [P?] [Story?] Description`
 
+**Inline code legend**: G = Coverage Gap (spec vs. tasks), U = Underspecification (vague or missing requirement detail), I = Inconsistency (conflict between artifacts)
+
 - **[P]**: Can run in parallel (different files, no shared state)
 - **[US1/US2/US3]**: User story this task belongs to
 
@@ -110,8 +112,11 @@ HTTP 503 DOWN/DOWN. Response within 2 seconds in both cases.
 
 **Purpose**: Verify correctness end-to-end and confirm the full system behaves as specified.
 
-- [ ] T025 [P] Run full test suite `./gradlew test` — confirm all unit tests (domain, infrastructure/memory) and all integration tests (CheckRouteIT, LimitsRouteIT, HealthRouteIT) pass with zero failures; **SC-007 verification (G3)**: after `testApplication` block completes, confirm that `connection.isOpen == false` and no connection exception is thrown during test teardown — acceptable as a manual check in `HealthRouteIT` teardown or as a log observation if programmatic assertion is not feasible with `testApplication` lifecycle
 - [ ] T025b Write `ConcurrentCheckIT` — configure `limit=10`/`windowSeconds=60` for key `"concurrent-test"`, launch 50 coroutines simultaneously via `(1..50).map { async { client.post("/v1/check") { … } } }.awaitAll()`, assert exactly 10 responses have `allowed=true`, exactly 40 have `allowed=false`, all 50 have HTTP 200; use `@BeforeEach` FLUSHDB for isolation — implements SC-002 in `src/test/kotlin/dev/zahaand/ratelimiter/integration/ConcurrentCheckIT.kt`
+
+> ⚠️ **Dependency**: T025b must complete before T025 — ConcurrentCheckIT must exist before the full test suite can validate SC-002.
+
+- [ ] T025 [P] Run full test suite `./gradlew test` — confirm all unit tests (domain, infrastructure/memory) and all integration tests (CheckRouteIT, LimitsRouteIT, HealthRouteIT) pass with zero failures; **SC-007 verification (G3)**: after `testApplication` block completes, confirm that `connection.isOpen == false` and no connection exception is thrown during test teardown — acceptable as a manual check in `HealthRouteIT` teardown or as a log observation if programmatic assertion is not feasible with `testApplication` lifecycle
 - [ ] T026 [P] Run smoke tests from `specs/002-sprint2-service-api/quickstart.md` against a local Redis instance on `localhost:6379` — exercise all five endpoints manually and confirm responses match contract in `specs/002-sprint2-service-api/contracts/http-api.md`
 
 ---

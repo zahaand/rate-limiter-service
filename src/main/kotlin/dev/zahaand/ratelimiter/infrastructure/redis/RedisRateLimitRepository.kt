@@ -9,6 +9,22 @@ import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import java.time.Clock
 import java.time.Instant
 
+/**
+ * Redis-backed implementation of [RateLimitRepository] using Lua scripts for atomic evaluation.
+ *
+ * Each algorithm has a dedicated Lua script loaded as a string constant. Scripts are executed
+ * via `EVAL` (not `EVALSHA`), so no pre-loading step is required — Redis compiles the script
+ * on first invocation and caches it by SHA internally.
+ *
+ * Atomicity is guaranteed by Redis's single-threaded command execution: the entire Lua script
+ * runs without interruption, so the read-modify-write cycle cannot be interleaved with another
+ * client's script for the same key. This is the production enforcement of the atomicity
+ * contract declared on [RateLimitRepository].
+ *
+ * Key prefixes isolate algorithm state: `rl:fw:` for Fixed Window, `rl:sw:` for Sliding Window,
+ * `rl:tb:` for Token Bucket. Each algorithm's Lua script returns `{allowed, remaining, resetAt}`
+ * as a list of integers, parsed by [parseDecision].
+ */
 class RedisRateLimitRepository(
     private val commands: RedisCoroutinesCommands<String, String>,
     private val clock: Clock = Clock.systemUTC()
