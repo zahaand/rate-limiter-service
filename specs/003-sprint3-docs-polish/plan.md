@@ -148,6 +148,16 @@ install(SwaggerUI) {
 > **Note**: verify exact DSL method names against the library's README before implementing.
 > See `research.md` Decision 2 for the known-stable patterns.
 
+> **Test context note**: The SwaggerUI plugin MUST NOT be installed when `overrideConfig`
+> is provided (i.e., under `testApplication`). Gate the installation:
+> ```kotlin
+> if (overrideConfig == null) {
+>     install(SwaggerUI) { ... }
+> }
+> ```
+> This prevents the plugin from attempting to serve `/swagger` and `/openapi.json` inside
+> the in-process test engine, where those paths are irrelevant and may cause routing noise.
+
 ### Route Documentation Blocks
 
 Each `documentation { }` block wraps the existing route body. The full annotation contract

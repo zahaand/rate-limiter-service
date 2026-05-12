@@ -199,7 +199,10 @@ the top of the file.
 - **FR-017**: The system MUST serve Swagger UI at the `/swagger` path, rendering an
   OpenAPI-compliant description of all five endpoints: `POST /v1/check`,
   `POST /v1/limits`, `GET /v1/limits/{key}`, `DELETE /v1/limits/{key}`, and `GET /health`.
-  The UI must be accessible from a browser without authentication.
+  The UI must be accessible from a browser without authentication. The ktor-swagger-ui
+  plugin automatically exposes `/openapi.json` serving the machine-readable OpenAPI
+  specification; this endpoint is included in scope — no additional implementation is
+  required. Acceptance criterion: `GET /openapi.json` returns valid OpenAPI JSON.
 - **FR-018**: Each documented endpoint MUST include: an imperative-phrase summary (not a URL
   or HTTP verb), a description, all applicable response status codes with descriptions, and
   at least one named example per request/response with realistic domain data. The minimum
