@@ -215,6 +215,7 @@ the top of the file.
 - **FR-019**: Examples in Swagger documentation MUST use realistic domain values. Prohibited
   placeholder values include: `"string"`, `0` for IDs or counts where non-zero is the
   typical case, `"example"`, unnamed or auto-generated example names, and empty objects.
+  See `contracts/swagger-annotations.md` for canonical domain value examples per endpoint.
 - **FR-020**: KDoc MUST be written for the following high-priority classes/interfaces, each
   explaining the invariant, at least one non-obvious behavioral detail, and the atomicity
   guarantee where applicable: `FixedWindowAlgorithm`, `SlidingWindowAlgorithm`,

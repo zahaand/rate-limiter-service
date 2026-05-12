@@ -112,25 +112,30 @@ handlers unchanged. KDoc added directly above class/function declarations.
 
 ### Dependency Addition (build.gradle.kts)
 
+Version 5.x splits the former monolith into two artifacts — both are required:
+
 ```kotlin
 val swaggerUiVersion = "5.7.0"
 // ...
+// ktor-openapi: ApplicationPlugin, OpenAPI spec generation, route documentation DSL
+implementation("io.github.smiley4:ktor-openapi:$swaggerUiVersion")
+// ktor-swagger-ui: static Swagger HTML/JS file server (Route extension only)
 implementation("io.github.smiley4:ktor-swagger-ui:$swaggerUiVersion")
 ```
 
 Add after the existing Ktor server dependencies block. No version conflicts expected —
 verify with `./gradlew dependencies | grep swagger` after adding.
 
-### SwaggerUI Plugin (Application.kt)
+### OpenAPI Plugin (Application.kt)
 
-Install immediately before the `install(ContentNegotiation)` call:
+In v5.x the library splits into two artifacts (see Dependency Addition above). The plugin is
+`OpenApi` from `ktor-openapi`; the Swagger UI static file server is a separate `Route`
+extension from `ktor-swagger-ui`.
+
+Install `OpenApi` immediately before the `install(ContentNegotiation)` call:
 
 ```kotlin
-install(SwaggerUI) {
-    swagger {
-        swaggerUrl = "swagger"
-        forwardRoot = false
-    }
+install(OpenApi) {
     info {
         title = "Rate Limiter Service API"
         version = "1.0.0"
@@ -145,69 +150,78 @@ install(SwaggerUI) {
 }
 ```
 
-> **Note**: verify exact DSL method names against the library's README before implementing.
-> See `research.md` Decision 2 for the known-stable patterns.
+Then add Swagger UI routes inside the same `if (overrideConfig == null)` guard (see below):
 
-> **Test context note**: The SwaggerUI plugin MUST NOT be installed when `overrideConfig`
-> is provided (i.e., under `testApplication`). Gate the installation:
-> ```kotlin
-> if (overrideConfig == null) {
->     install(SwaggerUI) { ... }
-> }
-> ```
-> This prevents the plugin from attempting to serve `/swagger` and `/openapi.json` inside
-> the in-process test engine, where those paths are irrelevant and may cause routing noise.
+```kotlin
+if (overrideConfig == null) {
+    install(OpenApi) { /* ... */ }
+    routing {
+        route("openapi.json") { openApi() }
+        route("swagger") { swaggerUI("/openapi.json") }
+    }
+}
+```
+
+> **Test context gate**: `install(OpenApi)` and the Swagger routes MUST be skipped when
+> `overrideConfig != null` (i.e., inside `testApplication`). The guard above achieves this.
+> Without it the plugin attempts to register `/swagger` and `/openapi.json` inside the
+> in-process test engine, causing routing noise.
 
 ### Route Documentation Blocks
 
-Each `documentation { }` block wraps the existing route body. The full annotation contract
-for each endpoint is in `contracts/swagger-annotations.md`. Pattern for `CheckRoute.kt`:
+In v5.x `ktor-openapi` exposes overloaded route builders (`post`, `get`, `delete`) that
+accept a documentation lambda as the second argument and the handler as the third. Import
+`io.github.smiley4.ktoropenapi.post` (and the `get`/`delete` counterparts) to shadow the
+vanilla Ktor builders. The full annotation contract is in `contracts/swagger-annotations.md`.
+
+Pattern for `CheckRoute.kt`:
 
 ```kotlin
-post("/check") {
-    documentation {
-        operationId = "checkRateLimit"
-        summary = "Check rate limit for a client key"
-        tags = listOf("Rate Limit")
-        request {
-            body<CheckRequest> {
-                required = true
-                example("tenant-api") { value = CheckRequest("tenant-api") }
-                example("user-session") { value = CheckRequest("user-abc-session-9f2e") }
+import io.github.smiley4.ktoropenapi.post
+
+post("/check", {
+    operationId = "checkRateLimit"
+    summary = "Check rate limit for a client key"
+    tags("Rate Limit")
+    request {
+        body<CheckRequest> {
+            required = true
+            example("tenant-api") { value = CheckRequest("tenant-api") }
+            example("user-session") { value = CheckRequest("user-abc-session-9f2e") }
+        }
+    }
+    response {
+        HttpStatusCode.OK to {
+            description = "Rate limit decision. Always 200 for a valid request — check `allowed` for the decision."
+            body<CheckResponse> {
+                example("allowed") {
+                    value = CheckResponse(true, 7, Instant.parse("2026-05-12T14:00:00Z"))
+                }
+                example("rejected") {
+                    value = CheckResponse(false, 0, Instant.parse("2026-05-12T14:00:00Z"))
+                }
             }
         }
-        response {
-            HttpStatusCode.OK to {
-                description = "Rate limit decision. Always 200 for a valid request — check `allowed` for the decision."
-                body<CheckResponse> {
-                    example("allowed") {
-                        value = CheckResponse(true, 7, Instant.parse("2026-05-12T14:00:00Z"))
-                    }
-                    example("rejected") {
-                        value = CheckResponse(false, 0, Instant.parse("2026-05-12T14:00:00Z"))
-                    }
-                }
+        HttpStatusCode.BadRequest to {
+            description = "Validation error — blank key, key exceeds 512 characters, or malformed JSON body."
+            body<ErrorResponse> {
+                example("blank-key") { value = ErrorResponse("key must not be blank") }
             }
-            HttpStatusCode.BadRequest to {
-                description = "Validation error — blank key, key exceeds 512 characters, or malformed JSON body."
-                body<ErrorResponse> {
-                    example("blank-key") { value = ErrorResponse("key must not be blank") }
-                }
+        }
+        HttpStatusCode.UnsupportedMediaType to {
+            description = "Content-Type is not application/json."
+            body<ErrorResponse> {
+                example("wrong-content-type") { value = ErrorResponse("unsupported media type") }
             }
-            HttpStatusCode.UnsupportedMediaType to {
-                description = "Content-Type is not application/json."
-                body<ErrorResponse> {
-                    example("wrong-content-type") { value = ErrorResponse("unsupported media type") }
-                }
-            }
-            HttpStatusCode.InternalServerError to {
-                description = "Unhandled server error. Stack traces are never exposed."
-                body<ErrorResponse> {
-                    example("internal") { value = ErrorResponse("internal server error") }
-                }
+        }
+        HttpStatusCode.InternalServerError to {
+            description = "Unhandled server error. Stack traces are never exposed."
+            body<ErrorResponse> {
+                example("internal") { value = ErrorResponse("internal server error") }
             }
         }
     }
+}) {
     // existing handler body unchanged below
 ```
 
