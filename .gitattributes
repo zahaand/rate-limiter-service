@@ -1,0 +1,11 @@
+# Force GitHub to recognize the project as Kotlin
+*.kt linguist-detectable=true
+*.kts linguist-detectable=true
+
+# Ignore specs directory from language statistics
+specs/** linguist-documentation=true
+
+# Mark gradle wrapper scripts as generated or vendor to reduce their weight in stats
+gradlew linguist-generated=true
+gradlew.bat linguist-generated=true
+gradle/** linguist-generated=true
