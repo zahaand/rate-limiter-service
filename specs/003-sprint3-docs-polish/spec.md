@@ -89,7 +89,7 @@ implementation classes.
    **When** they read the KDoc,
    **Then** fractional token accumulation, the `floor` application, and the zero-rate
    guard are explained with their rationale
-4. **Given** a developer opens `RateLimiterRepository` or `LimitConfigRepository`,
+4. **Given** a developer opens `RateLimitRepository` or `ConfigRepository`,
    **When** they read the KDoc,
    **Then** the atomicity guarantee, the contract for `delete` returning `Boolean`, and
    the fallback/error semantics are unambiguous
@@ -218,11 +218,11 @@ the top of the file.
 - **FR-020**: KDoc MUST be written for the following high-priority classes/interfaces, each
   explaining the invariant, at least one non-obvious behavioral detail, and the atomicity
   guarantee where applicable: `FixedWindowAlgorithm`, `SlidingWindowAlgorithm`,
-  `TokenBucketAlgorithm`, `RateLimiterRepository` interface, `RateLimiterService`.
+  `TokenBucketAlgorithm`, `RateLimitRepository` interface, `RateLimiterService`.
 - **FR-021**: KDoc MUST be written for the following medium-priority classes/interfaces with
   standard documentation covering purpose and contract: `RateLimitPolicy`, `RateLimitDecision`,
-  the `Algorithm` sealed class hierarchy, `RedisRateLimiterRepository`,
-  `LimitConfigRepository` interface.
+  the `RateLimitStrategy` sealed class hierarchy, `RedisRateLimitRepository`,
+  `ConfigRepository` interface.
 - **FR-022**: The project `README.md` at the repository root MUST contain exactly the
   following nine sections in order: (1) header with one-line description, (2) overview,
   (3) three algorithms with trade-off table, (4) tech stack table, (5) package structure,
@@ -265,8 +265,8 @@ the top of the file.
 - **SC-012**: A first-time visitor can clone the repository, follow the README Quick Start,
   and receive a successful `POST /v1/check` response within five minutes on macOS or Linux.
 - **SC-013**: The concurrency correctness guarantee (SC-002 from Sprint 2) is verified by
-  an automated test that passes in 100% of runs: 50 simultaneous requests with `limit=10`
-  yield exactly 10 `allowed=true` responses.
+  `ConcurrentCheckIT` passing with exactly 10 `allowed=true` and 40 `allowed=false` in a
+  single run: 50 simultaneous requests with `limit=10` yield exactly 10 `allowed=true` responses.
 - **SC-014**: The full test suite (`./gradlew test`) passes with zero failures, including
   `ConcurrentCheckIT`, when Docker Desktop is running.
 
